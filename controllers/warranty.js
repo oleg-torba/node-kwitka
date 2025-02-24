@@ -136,11 +136,14 @@ const fileteredWarranty = async (req, res) => {
     if (reporting) filters.reporting = { $regex: reporting, $options: "i" };
 
     if (startDate && endDate) {
-      filters.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+      filters.createdAt = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
     } else if (startDate) {
-      filters.date = { $gte: new Date(startDate) };
+      filters.createdAt = { $gte: new Date(startDate) };
     } else if (endDate) {
-      filters.date = { $lte: new Date(endDate) };
+      filters.createdAt = { $lte: new Date(endDate) };
     }
 
     if (brand) filters.brand = brand;
