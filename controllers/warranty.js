@@ -121,24 +121,20 @@ const fileteredWarranty = async (req, res) => {
     startDate,
     endDate,
     brand,
-    resolution,
+    rezolution,
   } = req.body;
 
   try {
     const filters = {};
 
-    // Фільтрація по номеру ремонту
     if (repairNumber)
       filters.repairNumber = { $regex: repairNumber, $options: "i" };
 
-    // Фільтрація по номеру сертифіката
     if (certificateNumber)
       filters.certificateNumber = { $regex: certificateNumber, $options: "i" };
 
-    // Фільтрація по клієнту
     if (reporting) filters.reporting = { $regex: reporting, $options: "i" };
 
-    // Фільтрація по датам
     if (startDate && endDate) {
       filters.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
     } else if (startDate) {
@@ -147,13 +143,10 @@ const fileteredWarranty = async (req, res) => {
       filters.date = { $lte: new Date(endDate) };
     }
 
-    // Фільтрація по бренду
     if (brand) filters.brand = brand;
 
-    // Фільтрація по статусу
-    if (resolution) filters.resolution = resolution;
+    if (rezolution) filters.rezolution = rezolution;
 
-    // Запит до бази даних
     const certificates = await Warranty.find(filters);
 
     res.status(200).json(certificates);
