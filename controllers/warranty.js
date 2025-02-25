@@ -92,21 +92,11 @@ const getAll = async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
     const pageNumber = parseInt(page, 10) || 1;
     const limitNumber = parseInt(limit, 10) || 10;
-    const skip = (pageNumber - 1) * limitNumber;
 
-    // Отримуємо загальну кількість записів
-    const totalCount = await Warranty.countDocuments();
-
-    // Якщо limit більше загальної кількості, виправляємо кількість сторінок
-    const totalPages = Math.ceil(totalCount / limitNumber) || 1;
-
-    const warranties = await Warranty.find().skip(skip).limit(limitNumber);
+    const warranties = await Warranty.find();
 
     res.json({
       data: warranties,
-      totalPages,
-      currentPage: pageNumber,
-      totalItems: totalCount,
     });
   } catch (error) {
     res.status(500).json({ message: "Помилка отримання гарантій", error });
