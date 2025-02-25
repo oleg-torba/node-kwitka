@@ -2,7 +2,8 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const http = require("http");
-const socketIo = require("socket.io");
+const { Server } = require("socket.io");
+
 const mongoose = require("mongoose");
 const logger = require("morgan");
 const cors = require("cors");
@@ -24,13 +25,13 @@ mongoose
 
 const app = express();
 const server = http.createServer(app);
-const formatsLogger = app.get("env") === "development" ? "dev" : "short";
-const io = socketIo(server, {
+const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
   },
 });
+const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
 app.use(logger(formatsLogger));
 app.use(cors());

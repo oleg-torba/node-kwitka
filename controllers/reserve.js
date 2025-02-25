@@ -21,7 +21,6 @@ const addReserve = async (req, res) => {
       comment,
       executor,
     });
-    req.app.get("io").emit("reserveCreated", newReserve);
     res.status(201).json({
       message: "Додано новий запит",
       data: newReserve,
