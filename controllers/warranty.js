@@ -89,10 +89,6 @@ const getById = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
-    const pageNumber = parseInt(page, 10) || 1;
-    const limitNumber = parseInt(limit, 10) || 10;
-
     const warranties = await Warranty.find();
 
     res.json({
