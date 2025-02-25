@@ -54,21 +54,7 @@ io.on("connection", (socket) => {
     console.log("Message received:", msg);
 
     io.emit("message", msg);
-    io.emit("playSound", { sound: "message" });
-  });
-
-  // Запит на відправку аудіо
-  socket.on("sendAudio", () => {
-    const audioPath = path.join(__dirname, "public", "message.mp3");
-    fs.readFile(audioPath, (err, audioData) => {
-      if (err) {
-        console.error("Error reading audio file:", err);
-        return;
-      }
-
-      // Відправляємо бінарні дані аудіофайлу через WebSocket
-      socket.emit("audioNotification", audioData);
-    });
+    io.emit("playSound", { sound: "message.mp3" });
   });
 
   socket.on("disconnect", () => {
