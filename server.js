@@ -1,4 +1,6 @@
 const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const http = require("http");
 const socketIo = require("socket.io");
 const mongoose = require("mongoose");
@@ -44,6 +46,7 @@ app.use(
   },
   reserveRoute
 );
+
 io.on("connection", (socket) => {
   console.log("A user connected");
 
@@ -52,6 +55,20 @@ io.on("connection", (socket) => {
 
     io.emit("message", msg);
     io.emit("playSound", { sound: "message" });
+  });
+
+  // Запит на відправку аудіо
+  socket.on("sendAudio", () => {
+    const audioPath = path.join(__dirname, "public", "message.mp3");
+    fs.readFile(audioPath, (err, audioData) => {
+      if (err) {
+        console.error("Error reading audio file:", err);
+        return;
+      }
+
+      // Відправляємо бінарні дані аудіофайлу через WebSocket
+      socket.emit("audioNotification", audioData);
+    });
   });
 
   socket.on("disconnect", () => {
