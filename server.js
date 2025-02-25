@@ -51,6 +51,7 @@ io.on("connection", (socket) => {
     console.log("Message received:", msg);
 
     io.emit("message", msg);
+    io.emit("playSound", { sound: "message" });
   });
 
   socket.on("disconnect", () => {
