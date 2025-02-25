@@ -8,8 +8,7 @@ require("dotenv").config();
 const filterRoute = require("./routes/api/warranty");
 const warrantyRoute = require("./routes/api/warranty");
 const reserveRoute = require("./routes/api/reserve");
-const dbHost =
-  "mongodb+srv://olegtorba011:UYjNG5FujVfQmCeQ@cluster0.hk1w0.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const dbHost = process.env.MONGODB_URI;
 mongoose.set("strictQuery", true);
 mongoose
   .connect(dbHost)
@@ -37,7 +36,14 @@ app.use(express.json());
 app.use(express.static("public"));
 app.use("/api/warranty", warrantyRoute);
 app.use("/api/warranty/filter", filterRoute);
-app.use("/api/reserve", reserveRoute);
+app.use(
+  "/api/reserve",
+  (req, res, next) => {
+    req.app.set("io", io);
+    next();
+  },
+  reserveRoute
+);
 io.on("connection", (socket) => {
   console.log("A user connected");
 
