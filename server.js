@@ -58,6 +58,10 @@ io.on("connection", (socket) => {
     io.emit("playSound", { sound: "message.mp3" });
   });
 
+  socket.on("newReserve", (msg) => {
+    io.emit("newReserve", msg);
+    io.emit("playsound", { sound: "message.mp3" });
+  });
   socket.on("disconnect", () => {
     console.log("User disconnected");
   });

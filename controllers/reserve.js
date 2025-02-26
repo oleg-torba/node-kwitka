@@ -23,11 +23,6 @@ const addReserve = async (req, res) => {
       executor,
     });
 
-    const io = req.app.get("io");
-    if (io) {
-      io.emit("newReserve", newReserve);
-    }
-
     res.status(201).json({
       message: "Додано новий запит",
       data: newReserve,
