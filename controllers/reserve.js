@@ -32,6 +32,16 @@ const addReserve = async (req, res) => {
   }
 };
 
+const updateReserve = async (req, res) => {
+  const { id } = req.params;
+  const result = await reservationModel.findByIdAndUpdate(id, req.body, {
+    new: true,
+  });
+  if (!result) {
+    throw HttpErrors(404, "Not found");
+  }
+  res.json(result);
+};
 const getAll = async (req, res) => {
   try {
     const reservation = await reservationModel.find({});
@@ -46,4 +56,5 @@ const getAll = async (req, res) => {
 module.exports = {
   getAll: ctrlWrapper(getAll),
   addReserve: ctrlWrapper(addReserve),
+  updateReserve: ctrlWrapper(updateReserve),
 };
