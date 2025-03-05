@@ -32,6 +32,20 @@ const addReserve = async (req, res) => {
   }
 };
 
+const updateRecord = async (req, res) => {
+  try {
+    const latestRecords = await reservationModel
+      .find()
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.json(latestRecords);
+  } catch (error) {
+    console.error("Помилка при отриманні останніх записів:", error);
+    res.status(500).json({ message: "Помилка сервера" });
+  }
+};
+
 const updateReserve = async (req, res) => {
   const { id } = req.params;
   const result = await reservationModel.findByIdAndUpdate(id, req.body, {
@@ -57,4 +71,5 @@ module.exports = {
   getAll: ctrlWrapper(getAll),
   addReserve: ctrlWrapper(addReserve),
   updateReserve: ctrlWrapper(updateReserve),
+  updateRecord: ctrlWrapper(updateRecord),
 };

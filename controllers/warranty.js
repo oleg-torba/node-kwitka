@@ -204,6 +204,21 @@ const deleteWarranty = async (req, res) => {
   }
 };
 
+const getLatestCertificates = async (req, res) => {
+  try {
+    const latestCertificates = await Warranty.find()
+      .sort({ createdAt: -1 })
+      .limit(16)
+      .exec();
+
+    res.status(200).json(latestCertificates);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Помилка при отриманні сертифікатів", error });
+  }
+};
+
 module.exports = {
   getAll: ctrlWrapper(getAll),
   addWarranty: ctrlWrapper(addWarranty),
@@ -211,4 +226,5 @@ module.exports = {
   getById: ctrlWrapper(getById),
   fileteredWarranty: ctrlWrapper(fileteredWarranty),
   deleteWarranty: ctrlWrapper(deleteWarranty),
+  getLatestCertificates: ctrlWrapper(getLatestCertificates),
 };

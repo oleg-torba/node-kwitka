@@ -13,8 +13,13 @@ const ReservationSchema = new Schema({
     type: String,
     enum: ["Повний", "Частковий", "Відсутній", "Помилка"],
   },
-  comment: { type: String },
-  executor: { type: String, required: true },
+  comments: [
+    {
+      author: String,
+      text: String,
+      timestamp: { type: Date, default: Date.now }, // Час додавання коментаря
+    },
+  ],
 });
 
 const reservationModel = model("Reservation", ReservationSchema);
