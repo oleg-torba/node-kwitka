@@ -45,6 +45,7 @@ const WarrantySchema = new Schema({
     type: String,
     default: "",
   },
+  autoApproved: { type: Boolean, default: false },
   public_id: String,
 });
 
