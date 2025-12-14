@@ -2,7 +2,6 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const http = require("http");
-const { Server } = require("socket.io");
 
 const mongoose = require("mongoose");
 const logger = require("morgan");
@@ -10,7 +9,7 @@ const cors = require("cors");
 require("dotenv").config();
 const filterRoute = require("./routes/api/warranty");
 const warrantyRoute = require("./routes/api/warranty");
-const reserveRoute = require("./routes/api/reserve");
+
 const reportRoute = require("./routes/api/report");
 const dbHost = process.env.MONGODB_URI;
 mongoose.set("strictQuery", true);
@@ -26,12 +25,7 @@ mongoose
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
-});
+
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
 app.use(logger(formatsLogger));
@@ -41,33 +35,6 @@ app.use(express.static("public"));
 app.use("/api/reports", reportRoute);
 app.use("/api/warranty", warrantyRoute);
 app.use("/api/warranty/filter", filterRoute);
-app.use(
-  "/api/reserve",
-  (req, res, next) => {
-    req.app.set("io", io);
-    next();
-  },
-  reserveRoute
-);
-
-io.on("connection", (socket) => {
-  console.log("A user connected");
-
-  socket.on("message", (msg) => {
-    console.log("Message received:", msg);
-
-    io.emit("message", msg);
-    io.emit("playSound", { sound: "message.mp3" });
-  });
-
-  socket.on("newReserve", (msg) => {
-    io.emit("newReserve", msg);
-    io.emit("playsound", { sound: "message.mp3" });
-  });
-  socket.on("disconnect", () => {
-    console.log("User disconnected");
-  });
-});
 
 server.listen(3001, () => {
   console.log("Server is running on http://localhost:3001");
