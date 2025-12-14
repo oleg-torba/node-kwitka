@@ -11,6 +11,7 @@ require("dotenv").config();
 const filterRoute = require("./routes/api/warranty");
 const warrantyRoute = require("./routes/api/warranty");
 const reserveRoute = require("./routes/api/reserve");
+const reportRoute = require("./routes/api/report");
 const dbHost = process.env.MONGODB_URI;
 mongoose.set("strictQuery", true);
 mongoose
@@ -37,6 +38,7 @@ app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
+app.use("/api/reports", reportRoute);
 app.use("/api/warranty", warrantyRoute);
 app.use("/api/warranty/filter", filterRoute);
 app.use(
