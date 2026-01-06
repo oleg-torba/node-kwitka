@@ -11,34 +11,17 @@ const addWarranty = async (req, res) => {
       part,
       saleDate,
       reporting,
+      masterComment,
+      master,
       manager,
       brand,
       imageUrl,
       public_id,
+      masterImages,
+      warrantyVerdict,
+      createdBy,
     } = req.body;
 
-    if (
-      !repairNumber ||
-      !certificateNumber ||
-      !part ||
-      !saleDate ||
-      !reporting ||
-      !manager ||
-      !brand ||
-      !imageUrl ||
-      !public_id
-    ) {
-      return res
-        .status(400)
-        .json({ error: "Усі обов'язкові поля мають бути заповнені." });
-    }
-
-    const existingWarranty = await Warranty.findOne({ certificateNumber });
-    if (existingWarranty) {
-      return res
-        .status(400)
-        .json({ error: "Сертифікат із таким номером вже існує." });
-    }
 
     const newWarranty = await Warranty.create({
       repairNumber,
@@ -47,8 +30,13 @@ const addWarranty = async (req, res) => {
       saleDate,
       reporting,
       manager,
+      master,
       brand,
       imageUrl,
+      masterComment,
+      masterImages,
+      warrantyVerdict,
+      createdBy: req.body.createdBy || "manager",
       public_id,
     });
 
@@ -69,6 +57,7 @@ const addWarranty = async (req, res) => {
 const editWarranty = async (req, res) => {
   const { id } = req.params;
   const updatedData = req.body;
+  console.log("Updating warranty with data:", updatedData);
   const result = await Warranty.findByIdAndUpdate(id, updatedData, {
     new: true,
   });
@@ -154,40 +143,6 @@ const deleteWarranty = async (req, res) => {
       return res.status(404).json({ message: "Сертифікат не знайдено" });
     }
 
-    const publicId = warranty.public_id;
-    const timestamp = Math.floor(Date.now() / 1000);
-
-    const signature = crypto
-      .createHash("sha1")
-      .update(
-        `public_id=${publicId}&timestamp=${timestamp}${process.env.CLOUDINARY_API_SECRET}`
-      )
-      .digest("hex");
-
-    const body = new URLSearchParams({
-      public_id: publicId,
-      api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
-      signature: signature,
-      timestamp: timestamp,
-    });
-
-    const cloudinaryResponse = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/destroy`,
-      {
-        method: "POST",
-        body: body,
-      }
-    );
-
-    const cloudinaryData = await cloudinaryResponse.json();
-
-    if (cloudinaryData.result !== "ok") {
-      return res.status(500).json({
-        message: "Не вдалося видалити файл з Cloudinary",
-        error: cloudinaryData,
-      });
-    }
-
     const deletedWarranty = await Warranty.findByIdAndDelete(id);
 
     if (!deletedWarranty) {
@@ -196,7 +151,7 @@ const deleteWarranty = async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: "Сертифікат видалено", cloudinaryData });
+      .json({ message: "Сертифікат видалено", data: deletedWarranty });
   } catch (error) {
     return res
       .status(500)
