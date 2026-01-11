@@ -36,6 +36,6 @@ app.use("/api/reports", reportRoute);
 app.use("/api/warranty", warrantyRoute);
 app.use("/api/warranty/filter", filterRoute);
 
-server.listen(3001, () => {
+server.listen(3001,"0.0.0.0", () => {
   console.log("Server is running on http://localhost:3001");
 });
