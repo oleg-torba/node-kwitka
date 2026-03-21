@@ -3,72 +3,65 @@ const Warranty = require("../models/warranty");
 const crypto = require("crypto");
 const fetch = require("node-fetch");
 const nodemailer = require("nodemailer");
+const Warranty = require("../models/warranty"); // Переконайся, що шлях вірний
+const ctrlWrapper = require("../helpers/ctrlWrapper");
 
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // ОБОВ'ЯЗКОВО false для порту 587
+  host: "smtp.ukr.net",
+  port: 465,
+  secure: true, 
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    pass: process.env.EMAIL_PASS, 
   },
-  // Залишаємо фікс для IPv4, який ми обговорювали раніше
-  family: 4, 
-  // Додаємо налаштування TLS, щоб з'єднання не скидалося
-  tls: {
-    ciphers: 'SSLv3',
-    rejectUnauthorized: false
-  },
-  connectionTimeout: 20000, // Даємо Render більше часу (20 сек)
-  greetingTimeout: 20000,
+  family: 4,
+  connectionTimeout: 10000, 
 });
 
-transporter.verify(function (error, success) {
+transporter.verify((error) => {
   if (error) {
-    console.log("❌ Помилка конфігурації пошти:", error);
+    console.log("❌ Помилка підключення Ukr.net:", error.message);
   } else {
-    console.log("✅ Сервер готовий до надсилання листів");
+    console.log("✅ Пошта Ukr.net підключена успішно!");
   }
 });
+
 
 const sendAlkoEmail = async (data) => {
   if (data.brand && data.brand.trim().toUpperCase() === "AL-KO") {
     const mailOptions = {
-      from: `"Гарантійне сповіщення" <${process.env.EMAIL_USER}>`,
+  
+      from: `<${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_MANAGER, 
       subject: `📢 Проведено діагностику по гарантії AL-KO № ${data.repairNumber}`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
-          <h2 style="color: blue;">Подати на гарантію AL-KO</h2>
+          <h2 style="color: #044389;">Подати на гарантію AL-KO</h2>
           <p><b>№ Ремонту:</b> ${data.repairNumber}</p>
           <p><b>Майстер:</b> ${data.master}</p>
           <p><b>Рішення:</b> ${data.warrantyVerdict || "Не вказано"}</p>
-<p><b>Фото майстра:</b></p>
-<div style="display: flex; flex-wrap: wrap; gap: 10px;">
-  <p><b>Список усіх фото (клікніть для перегляду):</b></p>
-<ul style="padding-left: 20px; font-family: Arial, sans-serif;">
-  ${data.masterImages && data.masterImages.length > 0 
-    ? data.masterImages.map((img, index) => {
-        const url = typeof img === 'object' ? img.url : img;
-        
-        return `
-        <li style="margin-bottom: 10px;">
-          <a href="${url}" 
-             target="_blank" 
-             style="color: #1a73e8; text-decoration: none; font-weight: bold;">
-             🔗 Відкрити Фото №${index + 1}
-          </a>
-          <br />
-          <span style="font-size: 10px; color: #999;">
-            ${url ? url.substring(0, 50) : 'Посилання відсутнє'}...
-          </span>
-        </li>`;
-      }).join('')
-    : "<li><i>Фотографії не були завантажені.</i></li>"
-  }
-</ul>
-</div>          <hr>
+          
+          <p><b>Список усіх фото (клікніть для перегляду):</b></p>
+          <ul style="padding-left: 20px; font-family: Arial, sans-serif;">
+            ${data.masterImages && data.masterImages.length > 0 
+              ? data.masterImages.map((img, index) => {
+                  const url = typeof img === 'object' ? img.url : img;
+                  return `
+                  <li style="margin-bottom: 10px;">
+                    <a href="${url}" target="_blank" style="color: #1a73e8; text-decoration: none; font-weight: bold;">
+                       🔗 Відкрити Фото №${index + 1}
+                    </a>
+                    <br />
+                    <span style="font-size: 10px; color: #999;">
+                      ${url ? url.substring(0, 50) : 'Посилання відсутнє'}...
+                    </span>
+                  </li>`;
+                }).join('')
+              : "<li><i>Фотографії не були завантажені.</i></li>"
+            }
+          </ul>
+          <hr>
           <p style="font-size: 12px; color: gray;">Повідомлення створено автоматично системою Warranty Control.</p>
         </div>
       `,
@@ -82,36 +75,34 @@ const sendAlkoEmail = async (data) => {
     }
   }
 };
+
 const addWarranty = async (req, res) => {
-  try {
-    const {
-      repairNumber, certificateNumber, part, saleDate,
-      reporting, masterComment, master, manager,
-      brand, imageUrl, public_id, masterImages,
-      warrantyVerdict, createdBy,
-    } = req.body;
+  const {
+    repairNumber, certificateNumber, part, saleDate,
+    reporting, masterComment, master, manager,
+    brand, imageUrl, public_id, masterImages,
+    warrantyVerdict, createdBy,
+  } = req.body;
 
-    const newWarranty = await Warranty.create({
-      repairNumber, certificateNumber, part, saleDate,
-      reporting, manager, master, brand,
-      imageUrl, masterComment, masterImages,
-      warrantyVerdict,
-      createdBy: req.body.createdBy || "manager",
-      public_id,
-    });
+  const newWarranty = await Warranty.create({
+    repairNumber, certificateNumber, part, saleDate,
+    reporting, manager, master, brand,
+    imageUrl, masterComment, masterImages,
+    warrantyVerdict,
+    createdBy: req.body.createdBy || "manager",
+    public_id,
+  });
 
-    // 🔥 НАДСИЛАЄМО ЛИСТ ЯКЩО БРЕНД AL-KO
-    sendAlkoEmail(newWarranty);
 
-    res.status(201).json({
-      message: "Гарантійний сертифікат успішно створено.",
-      data: newWarranty,
-    });
-  } catch (error) {
-    console.error("Помилка при створенні сертифіката:", error.message);
-    res.status(500).json({ error: "Помилка при створенні сертифіката." });
-  }
+  sendAlkoEmail(newWarranty);
+
+  res.status(201).json({
+    message: "Гарантійний сертифікат успішно створено.",
+    data: newWarranty,
+  });
 };
+
+
 const editWarranty = async (req, res) => {
   const { id } = req.params;
   const updatedData = req.body;
