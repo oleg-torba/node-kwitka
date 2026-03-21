@@ -3,7 +3,6 @@ const Warranty = require("../models/warranty");
 const crypto = require("crypto");
 const fetch = require("node-fetch");
 const nodemailer = require("nodemailer");
-const Warranty = require("../models/warranty"); // Переконайся, що шлях вірний
 const ctrlWrapper = require("../helpers/ctrlWrapper");
 
 
