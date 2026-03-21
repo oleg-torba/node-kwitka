@@ -1,7 +1,7 @@
 const { Schema, model } = require("mongoose");
 
 const WarrantySchema = new Schema({
-  repairNumber: { type: String }, // завжди потрібен
+  repairNumber: { type: String },
   createdBy: { type: String, enum: ["master", "manager"] },
   createdAt: { type: Date, default: Date.now },
 
@@ -27,7 +27,7 @@ const WarrantySchema = new Schema({
   master: { type: String, default: null },
   brand: { type: String, default: null },
 
-  rezolution: { type: String, enum: ["", "ok", "rejected"], default: "" },
+  rezolution: { type: String, enum: ["ok", "rejected", "waiting", "default"], default: "default" },
   fixationDate: { type: Date, default: null },
   autoApproved: { type: Boolean, default: false },
   public_id: String,
