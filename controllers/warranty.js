@@ -13,6 +13,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+transporter.verify(function (error, success) {
+  if (error) {
+    console.log("❌ Помилка конфігурації пошти:", error);
+  } else {
+    console.log("✅ Сервер готовий до надсилання листів");
+  }
+});
+
 const sendAlkoEmail = async (data) => {
   if (data.brand && data.brand.trim().toUpperCase() === "AL-KO") {
     const mailOptions = {
