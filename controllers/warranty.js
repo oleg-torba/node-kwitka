@@ -7,14 +7,21 @@ const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false, // ОБОВ'ЯЗКОВО false для порту 587
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  family: 4,
-  connectionTimeout: 10000,
+  // Залишаємо фікс для IPv4, який ми обговорювали раніше
+  family: 4, 
+  // Додаємо налаштування TLS, щоб з'єднання не скидалося
+  tls: {
+    ciphers: 'SSLv3',
+    rejectUnauthorized: false
+  },
+  connectionTimeout: 20000, // Даємо Render більше часу (20 сек)
+  greetingTimeout: 20000,
 });
 
 transporter.verify(function (error, success) {
