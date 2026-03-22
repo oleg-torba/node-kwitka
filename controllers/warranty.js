@@ -8,10 +8,10 @@ const fetch = require("node-fetch");
 const sendAlkoEmail = async (data) => {
   if (data?.brand?.trim().toUpperCase() !== "AL-KO") return;
 
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbySAvILQDj7ua0-xL6PeCaknaJMT84-bFqV1sgJ4u1PRudnNPX80geOZOz0Zn4XcMK9-Q/exec"; // Вставте сюди посилання з Кроку 1
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbzC8IgDUCSH6ni-guyYUpj9p7g-vvbz9Ouryuo2rbJjw_89l22rHiSVFi7WgBGSk77L2A/exec"; // Вставте сюди посилання з Кроку 1
 
   const payload = {
-    key: "AKfycbySAvILQDj7ua0-xL6PeCaknaJMT84-bFqV1sgJ4u1PRudnNPX80geOZOz0Zn4XcMK9-Q", // Має збігатися з ключем у скрипті
+    key: "AKfycbzC8IgDUCSH6ni-guyYUpj9p7g-vvbz9Ouryuo2rbJjw_89l22rHiSVFi7WgBGSk77L2A", // Має збігатися з ключем у скрипті
     to: process.env.EMAIL_MANAGER,
     subject: `📢 Гарантія AL-KO № ${data.repairNumber}`,
     html: `
