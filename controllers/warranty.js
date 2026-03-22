@@ -32,8 +32,9 @@ const sendAlkoEmail = async (data) => {
     const response = await fetch(scriptUrl, {
       method: "POST",
       body: JSON.stringify(payload)
+      
     });
-
+console.log("Спроба відправити лист на:", process.env.EMAIL_MANAGER);
     if (response.ok) {
       console.log("✅ Лист AL-KO надіслано через Google Proxy");
     }
