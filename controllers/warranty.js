@@ -2,66 +2,43 @@ const ctrlWrapper = require("../helpers/ctrlWrapper");
 const Warranty = require("../models/warranty");
 const crypto = require("crypto");
 const fetch = require("node-fetch");
-const nodemailer = require("nodemailer");
 
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.meta.ua",
-  port: 465,
-  secure: true, 
-  auth: {
-    user: process.env.EMAIL_USER,
-  },
-  family: 4,
-});
-
-// Перевірка при старті
-transporter.verify((error) => {
-  if (error) {
-    console.log("❌ Помилка Meta.ua:", error.message);
-  } else {
-    console.log("✅ Пошта Meta.ua успішно підключена!");
-  }
-});
 
 const sendAlkoEmail = async (data) => {
-  if (data?.brand?.trim().toUpperCase() === "AL-KO") {
-    const mailOptions = {
-      from: `<${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_MANAGER,
-      subject: `📢 Гарантія AL-KO № ${data.repairNumber}`,
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; border: 2px solid #ffcc00;">
-          <h2 style="color: #333;">Нова заявка: AL-KO</h2>
-          <p><b>№ Ремонту:</b> ${data.repairNumber}</p>
-          <p><b>Майстер:</b> ${data.master}</p>
-          <p><b>Вердикт:</b> ${data.warrantyVerdict || "На розгляді"}</p>
-          <hr>
-          <p><b>Фото</b></p>
-          <ul style="list-style: none; padding: 0;">
-            ${data.masterImages && data.masterImages.length > 0 
-              ? data.masterImages.map((img, index) => {
-                  const url = typeof img === 'object' ? img.url : img;
-                  return `
-                  <li style="margin-bottom: 10px;">
-                    <a href="${url}" target="_blank" style="background: #007bff; color: white; padding: 5px 10px; text-decoration: none; border-radius: 4px; font-size: 14px;">
-                       🔗 Відкрити Фото №${index + 1}
-                    </a>
-                  </li>`;
-                }).join('')
-              : "<li>Фото відсутні</li>"
-            }
-          </ul>
-        </div>
-      `,
-    };
+  if (data?.brand?.trim().toUpperCase() !== "AL-KO") return;
 
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log("✅ Лист через Meta.ua надіслано");
-    } catch (err) {
-      console.error("❌ Помилка надсилання через Meta.ua:", err.message);
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbySAvILQDj7ua0-xL6PeCaknaJMT84-bFqV1sgJ4u1PRudnNPX80geOZOz0Zn4XcMK9-Q/exec"; // Вставте сюди посилання з Кроку 1
+
+  const payload = {
+    key: "AKfycbySAvILQDj7ua0-xL6PeCaknaJMT84-bFqV1sgJ4u1PRudnNPX80geOZOz0Zn4XcMK9-Q", // Має збігатися з ключем у скрипті
+    to: process.env.EMAIL_MANAGER,
+    subject: `📢 Гарантія AL-KO № ${data.repairNumber}`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
+        <h2>Подати на гарантію AL-KO</h2>
+        <p><b>№ Ремонту:</b> ${data.repairNumber}</p>
+        <p><b>Майстер:</b> ${data.master}</p>
+        <hr>
+        <p><b>Фото:</b></p>
+        <ul>
+          ${data.masterImages?.map((img, i) => `<li><a href="${typeof img === 'object' ? img.url : img}">Фото №${i+1}</a></li>`).join('') || "<li>Фото відсутні</li>"}
+        </ul>
+      </div>
+    `
+  };
+
+  try {
+    const response = await fetch(scriptUrl, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      console.log("✅ Лист AL-KO надіслано через Google Proxy");
     }
+  } catch (err) {
+    console.error("❌ Помилка надсилання через проксі:", err.message);
   }
 };
 const addWarranty = async (req, res) => {
