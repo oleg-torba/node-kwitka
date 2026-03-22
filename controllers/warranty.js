@@ -11,20 +11,65 @@ const sendAlkoEmail = async (data) => {
   const scriptUrl = "https://script.google.com/macros/s/AKfycbzC8IgDUCSH6ni-guyYUpj9p7g-vvbz9Ouryuo2rbJjw_89l22rHiSVFi7WgBGSk77L2A/exec"; // Вставте сюди посилання з Кроку 1
 
   const payload = {
-    key: "AKfycbzC8IgDUCSH6ni-guyYUpj9p7g-vvbz9Ouryuo2rbJjw_89l22rHiSVFi7WgBGSk77L2A", // Має збігатися з ключем у скрипті
+    key: "AKfycbzC8IgDUCSH6ni-guyYUpj9p7g-vvbz9Ouryuo2rbJjw_89l22rHiSVFi7WgBGSk77L2A", 
     to: process.env.EMAIL_MANAGER,
-    subject: `📢 Гарантія AL-KO № ${data.repairNumber}`,
+    subject: `Гарантійний випадок AL-KO № ${data.repairNumber}`,
     html: `
-      <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
-        <h2>Подати на гарантію AL-KO</h2>
-        <p><b>№ Ремонту:</b> ${data.repairNumber}</p>
-        <p><b>Майстер:</b> ${data.master}</p>
-        <hr>
-        <p><b>Фото:</b></p>
-        <ul>
-          ${data.masterImages?.map((img, i) => `<li><a href="${typeof img === 'object' ? img.url : img}">Фото №${i+1}</a></li>`).join('') || "<li>Фото відсутні</li>"}
-        </ul>
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; color: #333;">
+    <div style="background-color: #d32f2f; padding: 20px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 22px; letter-spacing: 1px;">ЗАЯВКА НА ГАРАНТІЮ AL-KO</h1>
+    </div>
+
+    <div style="padding: 30px; background-color: #ffffff;">
+      <p style="font-size: 16px; line-height: 1.5; color: #555;">
+        Вітаємо! У системі сформовано новий звіт по діагностиці техніки <strong>AL-KO</strong>. 
+        Будь ласка, розгляньте дані для прийняття рішення щодо гарантійного випадку.
+      </p>
+
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; color: #888; width: 40%;font-weight: bold;">№ Ремонту:</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${data.repairNumber}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; color: #888;font-weight: bold;">Майстер:</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${data.master}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; color: #888;">Пошкоджена запчастина:</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; color: #d32f2f; font-weight: bold;">${data.part}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; color: #888;font-weight: bold;">Вердикт:</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${data.warrantyVerdict || 'Потребує перевірки'}</td>
+        </tr>
+      </table>
+
+      <div style="margin-top: 30px;">
+        <h3 style="font-size: 14px; text-transform: uppercase; color: #888; margin-bottom: 15px;">Фото несправностей:</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+          ${data.masterImages && data.masterImages.length > 0 
+            ? data.masterImages.map((img, i) => {
+                const url = typeof img === 'object' ? img.url : img;
+                return `
+                  <a href="${url}" style="display: inline-block; padding: 10px 18px; background-color: #f4f4f4; color: #333; text-decoration: none; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 5px; font-size: 13px; font-weight: bold;">
+                    Переглянути Фото №${i + 1}
+                  </a>`;
+              }).join(' ')
+            : '<p style="color: #999; font-style: italic;">Фото не додано</p>'
+          }
+        </div>
       </div>
+    </div>
+
+    <div style="background-color: #f9f9f9; padding: 20px; border-top: 1px solid #eee; text-align: center;">
+      <p style="margin: 0; font-size: 14px; font-weight: bold; color: #333;"Квітка Сервіс"</p>
+      <p style="margin: 5px 0 0; font-size: 12px; color: #888;">Автоматизована система гарантійної звітності</p>
+      <div style="margin-top: 15px; font-size: 11px; color: #bbb;">
+        Цей лист згенеровано автоматично. Будь ласка, не відповідайте на нього.
+      </div>
+    </div>
+  </div>
     `
   };
 
