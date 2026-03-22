@@ -35,7 +35,11 @@ const sendAlkoEmail = async (data) => {
       
     });
 console.log("Спроба відправити лист на:", process.env.EMAIL_MANAGER);
+console.log("Спроба відправити лист від:", process.env.EMAIL_USER);
+console.log(payload)
     if (response.ok) {
+      const result = await response.text(); 
+console.log("Відповідь від сервера відправки:", result);
       console.log("✅ Лист AL-KO надіслано через Google Proxy");
     }
   } catch (err) {
