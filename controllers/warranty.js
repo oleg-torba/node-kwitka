@@ -6,74 +6,64 @@ const nodemailer = require("nodemailer");
 
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.ukr.net",
+  host: "smtp.meta.ua",
   port: 465,
   secure: true, 
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, 
   },
   family: 4,
-  connectionTimeout: 10000, 
 });
 
+// Перевірка при старті
 transporter.verify((error) => {
   if (error) {
-    console.log("❌ Помилка підключення Ukr.net:", error.message);
+    console.log("❌ Помилка Meta.ua:", error.message);
   } else {
-    console.log("✅ Пошта Ukr.net підключена успішно!");
+    console.log("✅ Пошта Meta.ua успішно підключена!");
   }
 });
 
-
 const sendAlkoEmail = async (data) => {
-  if (data.brand && data.brand.trim().toUpperCase() === "AL-KO") {
+  if (data?.brand?.trim().toUpperCase() === "AL-KO") {
     const mailOptions = {
-  
       from: `<${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_MANAGER, 
-      subject: `📢 Проведено діагностику по гарантії AL-KO № ${data.repairNumber}`,
+      to: process.env.EMAIL_MANAGER,
+      subject: `📢 Гарантія AL-KO № ${data.repairNumber}`,
       html: `
-        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
-          <h2 style="color: #044389;">Подати на гарантію AL-KO</h2>
+        <div style="font-family: sans-serif; padding: 20px; border: 2px solid #ffcc00;">
+          <h2 style="color: #333;">Нова заявка: AL-KO</h2>
           <p><b>№ Ремонту:</b> ${data.repairNumber}</p>
           <p><b>Майстер:</b> ${data.master}</p>
-          <p><b>Рішення:</b> ${data.warrantyVerdict || "Не вказано"}</p>
-          
-          <p><b>Список усіх фото (клікніть для перегляду):</b></p>
-          <ul style="padding-left: 20px; font-family: Arial, sans-serif;">
+          <p><b>Вердикт:</b> ${data.warrantyVerdict || "На розгляді"}</p>
+          <hr>
+          <p><b>Фото</b></p>
+          <ul style="list-style: none; padding: 0;">
             ${data.masterImages && data.masterImages.length > 0 
               ? data.masterImages.map((img, index) => {
                   const url = typeof img === 'object' ? img.url : img;
                   return `
                   <li style="margin-bottom: 10px;">
-                    <a href="${url}" target="_blank" style="color: #1a73e8; text-decoration: none; font-weight: bold;">
+                    <a href="${url}" target="_blank" style="background: #007bff; color: white; padding: 5px 10px; text-decoration: none; border-radius: 4px; font-size: 14px;">
                        🔗 Відкрити Фото №${index + 1}
                     </a>
-                    <br />
-                    <span style="font-size: 10px; color: #999;">
-                      ${url ? url.substring(0, 50) : 'Посилання відсутнє'}...
-                    </span>
                   </li>`;
                 }).join('')
-              : "<li><i>Фотографії не були завантажені.</i></li>"
+              : "<li>Фото відсутні</li>"
             }
           </ul>
-          <hr>
-          <p style="font-size: 12px; color: gray;">Повідомлення створено автоматично системою Warranty Control.</p>
         </div>
       `,
     };
 
     try {
       await transporter.sendMail(mailOptions);
-      console.log("✅ Лист для AL-KO успішно надіслано");
+      console.log("✅ Лист через Meta.ua надіслано");
     } catch (err) {
-      console.error("❌ Помилка надсилання листа AL-KO:", err.message);
+      console.error("❌ Помилка надсилання через Meta.ua:", err.message);
     }
   }
 };
-
 const addWarranty = async (req, res) => {
   const {
     repairNumber, certificateNumber, part, saleDate,
