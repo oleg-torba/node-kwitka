@@ -6,7 +6,7 @@ const fetch = require("node-fetch");
 
 
 const sendAlkoEmail = async (data) => {
-  if (data?.brand?.trim().toUpperCase() !== "AL-KO") return;
+  if (data?.master?) return;
 
   const scriptUrl = "https://script.google.com/macros/s/AKfycbzC8IgDUCSH6ni-guyYUpj9p7g-vvbz9Ouryuo2rbJjw_89l22rHiSVFi7WgBGSk77L2A/exec"; // Вставте сюди посилання з Кроку 1
 
