@@ -16,11 +16,6 @@ const sendWarrantyEmail = async (data) => {
 
   // Якщо це майстер і НЕ AL-KO — нічого не робимо (за вашою логікою)
   if (isMaster && !isAlko) return;
-
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbzC8IgDUCSH6ni-guyYUpj9p7g-vvbz9Ouryuo2rbJjw_89l22rHiSVFi7WgBGSk77L2A/exec";
-
-  // 2. Формуємо контент залежно від ситуації
-  let emailSubject = "";
   let emailHtml = "";
 
   if (isMaster && isAlko) {
