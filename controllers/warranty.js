@@ -5,90 +5,88 @@ const fetch = require("node-fetch");
 
 
 
-const sendAlkoEmail = async (data) => {
-  if (data?.brand?.trim().toUpperCase() !== "AL-KO") return;
+const sendWarrantyEmail = async (data) => {
+  // 1. Визначаємо умови
+  const isAlko = data?.brand?.trim().toUpperCase() === "AL-KO";
+  const isMaster = data?.createdBy === "master";
+  const isManager = data?.createdBy === "manager";
+  
+  // Перевірка, чи заповнені основні поля майстра
+  const masterFieldsFilled = data.master !== "" && data.part !== "" && data.rezolution !== "";
 
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbzC8IgDUCSH6ni-guyYUpj9p7g-vvbz9Ouryuo2rbJjw_89l22rHiSVFi7WgBGSk77L2A/exec"; // Вставте сюди посилання з Кроку 1
+  // Якщо це майстер і НЕ AL-KO — нічого не робимо (за вашою логікою)
+  if (isMaster && !isAlko) return;
+
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbzC8IgDUCSH6ni-guyYUpj9p7g-vvbz9Ouryuo2rbJjw_89l22rHiSVFi7WgBGSk77L2A/exec";
+
+  // 2. Формуємо контент залежно від ситуації
+  let emailSubject = "";
+  let emailHtml = "";
+
+  if (isMaster && isAlko) {
+    // --- ОРИГІНАЛЬНИЙ ЛИСТ ДЛЯ AL-KO ---
+    emailSubject = `Гарантійний випадок AL-KO № ${data.repairNumber}`;
+    emailHtml = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #d32f2f; padding: 20px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 22px;">ЗАЯВКА НА ГАРАНТІЮ AL-KO</h1>
+        </div>
+        <div style="padding: 30px;">
+          <p>У системі сформовано новий звіт по діагностиці <strong>AL-KO</strong>.</p>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><b>№ Ремонту:</b></td><td>${data.repairNumber}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><b>Майстер:</b></td><td>${data.master}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><b>Запчастина:</b></td><td style="color: #d32f2f;">${data.part}</td></tr>
+          </table>
+          <p style="margin-top: 20px;"><b>Фото:</b> ${data.masterImages?.length > 0 ? 'Додано' : 'Відсутні'}</p>
+        </div>
+      </div>`;
+  } 
+  else if (isManager && masterFieldsFilled) {
+    // --- НОВИЙ ЛИСТ ДЛЯ МЕНЕДЖЕРА (Будь-який бренд) ---
+    emailSubject = `Реєстрація гарантії ${data.brand} № ${data.repairNumber}`;
+    emailHtml = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #2e7d32; padding: 20px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 22px;">НОВА РЕЄСТРАЦІЯ ГАРАНТІЇ</h1>
+        </div>
+        <div style="padding: 30px;">
+          <p style="font-size: 16px;">Повідомляємо, що менеджер зареєстрував гарантійний випадок для бренду <strong>${data.brand}</strong>.</p>
+          <div style="background-color: #f1f8e9; padding: 15px; border-radius: 5px; margin-top: 20px;">
+            <p style="margin: 5px 0;"><strong>Номер ремонту:</strong> ${data.repairNumber}</p>
+            <p style="margin: 5px 0;"><strong>Бренд:</strong> ${data.brand}</p>
+            <p style="margin: 5px 0;"><strong>Майстер:</strong> ${data.master}</p>
+            <p style="margin: 5px 0;"><strong>Вердикт:</strong> ${data.rezolution}</p>
+          </div>
+          <p style="color: #666; font-size: 13px; margin-top: 20px;">На перевірку коректності внесених даних надається 2 дні</p>
+        </div>
+        <div style="background-color: #f9f9f9; padding: 15px; text-align: center; font-size: 12px; color: #888;">
+          "Квітка Сервіс" — Автоматичне сповіщення
+        </div>
+      </div>`;
+  } else {
+    // Якщо жодна умова не підійшла
+    return;
+  }
 
   const payload = {
-    key: "AKfycbzC8IgDUCSH6ni-guyYUpj9p7g-vvbz9Ouryuo2rbJjw_89l22rHiSVFi7WgBGSk77L2A", 
+    key: "AKfycbzC8IgDUCSH6ni-guyYUpj9p7g-vvbz9Ouryuo2rbJjw_89l22rHiSVFi7WgBGSk77L2A",
     to: process.env.EMAIL_MANAGER,
-    subject: `Гарантійний випадок AL-KO № ${data.repairNumber}`,
-    html: `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; color: #333;">
-    <div style="background-color: #d32f2f; padding: 20px; text-align: center;">
-      <h1 style="color: #ffffff; margin: 0; font-size: 22px; letter-spacing: 1px;">ЗАЯВКА НА ГАРАНТІЮ AL-KO</h1>
-    </div>
-
-    <div style="padding: 30px; background-color: #ffffff;">
-      <p style="font-size: 16px; line-height: 1.5; color: #555;">
-        Вітаємо! У системі сформовано новий звіт по діагностиці техніки <strong>AL-KO</strong>. 
-        Будь ласка, розгляньте дані для прийняття рішення щодо гарантійного випадку.
-      </p>
-
-      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-        <tr>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; color: #888; width: 40%;font-weight: bold;">№ Ремонту:</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${data.repairNumber}</td>
-        </tr>
-        <tr>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; color: #888;font-weight: bold;">Майстер:</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${data.master}</td>
-        </tr>
-        <tr>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; color: #888;">Пошкоджена запчастина:</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; color: #d32f2f; font-weight: bold;">${data.part}</td>
-        </tr>
-        <tr>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; color: #888;font-weight: bold;">Вердикт:</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${data.warrantyVerdict || 'Потребує перевірки'}</td>
-        </tr>
-      </table>
-
-      <div style="margin-top: 30px;">
-        <h3 style="font-size: 14px; text-transform: uppercase; color: #888; margin-bottom: 15px;">Фото несправностей:</h3>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-          ${data.masterImages && data.masterImages.length > 0 
-            ? data.masterImages.map((img, i) => {
-                const url = typeof img === 'object' ? img.url : img;
-                return `
-                  <a href="${url}" style="display: inline-block; padding: 10px 18px; background-color: #f4f4f4; color: #333; text-decoration: none; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 5px; font-size: 13px; font-weight: bold;">
-                    Переглянути Фото №${i + 1}
-                  </a>`;
-              }).join(' ')
-            : '<p style="color: #999; font-style: italic;">Фото не додано</p>'
-          }
-        </div>
-      </div>
-    </div>
-
-    <div style="background-color: #f9f9f9; padding: 20px; border-top: 1px solid #eee; text-align: center;">
-      <p style="margin: 0; font-size: 14px; font-weight: bold; color: #333;"Квітка Сервіс"</p>
-      <p style="margin: 5px 0 0; font-size: 12px; color: #888;">Автоматизована система гарантійної звітності</p>
-      <div style="margin-top: 15px; font-size: 11px; color: #bbb;">
-        Цей лист згенеровано автоматично. Будь ласка, не відповідайте на нього.
-      </div>
-    </div>
-  </div>
-    `
+    subject: emailSubject,
+    html: emailHtml
   };
 
   try {
     const response = await fetch(scriptUrl, {
       method: "POST",
       body: JSON.stringify(payload)
-      
     });
-console.log("Спроба відправити лист на:", process.env.EMAIL_MANAGER);
-console.log("Спроба відправити лист від:", process.env.EMAIL_USER);
-console.log(payload)
+
     if (response.ok) {
-      const result = await response.text(); 
-console.log("Відповідь від сервера відправки:", result);
-      console.log("✅ Лист AL-KO надіслано через Google Proxy");
+      console.log(`✅ Лист (${data.brand}) успішно надіслано. Відправник: ${data.ema}`);
     }
   } catch (err) {
-    console.error("❌ Помилка надсилання через проксі:", err.message);
+    console.error("❌ Помилка відправки:", err.message);
   }
 };
 const addWarranty = async (req, res) => {
@@ -109,7 +107,7 @@ const addWarranty = async (req, res) => {
   });
 
 
-  sendAlkoEmail(newWarranty);
+  sendWarrantyEmail(newWarranty);
 
   res.status(201).json({
     message: "Гарантійний сертифікат успішно створено.",
@@ -129,6 +127,7 @@ const editWarranty = async (req, res) => {
     throw HttpErrors(404, "Not found");
   }
   res.json(result);
+  sendWarrantyEmail(result);
 };
 
 const getById = async (req, res) => {
